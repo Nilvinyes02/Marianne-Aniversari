@@ -9,6 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
   <style>
+    /* ---------- RESET / BOX SIZING ---------- */
+    * ,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     /* ---------- ESTIL GLOBAL ---------- */
     body {
       margin: 0;
@@ -19,6 +26,7 @@
 
       background: radial-gradient(circle at top, #3b2b7a 0%, #1a1a1a 45%, #050509 100%);
       background-attachment: fixed;
+      overflow-x: hidden; /* evita scroll horitzontal al mòbil */
     }
 
     body::before {
@@ -44,9 +52,8 @@
     /* ---------- BOTÓ MÚSICA ---------- */
     .music-btn {
       position: fixed;
-      /* top: 8px;  <- ELIMINAT */
       right: 8px;
-      bottom: 10px;     /* ARA VA A BAIX */
+      bottom: 10px;     /* botó a baix perquè no tapi res */
       z-index: 10;
       border: 2px solid #000;
       background: #ffcf40;
@@ -112,42 +119,42 @@
 
     /* ---------- TEXT ---------- */
     p {
-    font-size: 14px;
-    margin: 0 20px 10px;   /* << abans 25px → ara molt més a prop */
-    line-height: 1.6;
-    color: #f0f0f0;
-    text-shadow: 0 2px 0 #000;
-  }
+      font-size: 14px;
+      margin: 0 20px 10px;
+      line-height: 1.6;
+      color: #f0f0f0;
+      text-shadow: 0 2px 0 #000;
+    }
 
-  .divider {
-    width: 70%;
-    max-width: 260px;
-    height: 4px;
-    margin: -70px auto 10px;  /* << abans 10px auto 20px → ara PUGEN */
-    background:
-      repeating-linear-gradient(
-        to right,
-        #ffcf40 0 8px,
-        #000 8px 10px
-      );
-    border: 2px solid #000;
-  }
+    .divider {
+      width: 70%;
+      max-width: 260px;
+      height: 4px;
+      margin: -70px auto 10px;
+      background:
+        repeating-linear-gradient(
+          to right,
+          #ffcf40 0 8px,
+          #000 8px 10px
+        );
+      border: 2px solid #000;
+    }
 
     /* ---------- CONTENIDOR BOTONS ---------- */
     .buttons {
       margin-top: 50px;
       display: flex;
       flex-direction: column;
-      gap: 14px; /* una mica més d'espai entre botons */
+      gap: 14px;
     }
 
     /* ---------- BOTONS MINIJOC (MÉS GRANS) ---------- */
     .btn {
       display: block;
       width: 100%;
-      max-width: 340px;        /* una mica més ample */
+      max-width: 340px;
       margin: 0 auto;
-      padding: 14px 10px;      /* ABANS 10px 8px → més alts */
+      padding: 14px 10px;
       text-decoration: none;
       border-radius: 4px;
       border: 3px solid #000;
@@ -162,16 +169,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;               /* una mica més de separació */
+      gap: 10px;
     }
 
     .btn-icon {
-      font-size: 18px;         /* icona més gran (abans 14px) */
+      font-size: 18px;
       flex-shrink: 0;
     }
 
     .btn-title {
-      font-size: 9px;          /* títol més gran (abans 8px) */
+      font-size: 9px;
       letter-spacing: 1px;
     }
 
@@ -201,10 +208,15 @@
       color: #ff8ad4;
     }
 
+    /* ---------- RESPONSIVE ---------- */
     @media (max-width: 480px) {
-      p { font-size: 8px; }
-      .btn-title { font-size: 8px; } /* en mòbil segueix llegible */
+      p { font-size: 10px; } /* una mica més gran que 8px per llegir bé */
+      .btn-title { font-size: 8px; }
       .music-btn { font-size: 9px; padding: 5px 7px; }
+
+      .char-img {
+        margin-bottom: 80px; /* menys espai buit a sota al mòbil */
+      }
     }
   </style>
 </head>
@@ -258,13 +270,12 @@
     let isPlaying = false;
 
     // volum suau
-    music.volume = 0.10; // canvia aquí si vols més o menys
+    music.volume = 0.10;
 
     // intentar autoplay silenciat amb fade-in
     window.addEventListener("load", () => {
-      music.volume = 0;                 // comença mud
+      music.volume = 0;
       music.play().then(() => {
-        // fade-in suau a 0.20
         let v = 0;
         const fade = setInterval(() => {
           if (v < 0.20) {
@@ -277,7 +288,6 @@
         isPlaying = true;
         musicBtn.classList.add('playing');
       }).catch(() => {
-        // Si el mòbil no permet autoplay, esperem un toc
         document.body.addEventListener('touchstart', firstTouchPlay, { once: true });
         document.body.addEventListener('click', firstTouchPlay, { once: true });
       });
@@ -300,7 +310,6 @@
       });
     }
 
-    // Botó manual
     function toggleMusic() {
       if (!music) return;
 
