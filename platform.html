@@ -415,7 +415,7 @@
       // 55% bons, 43% dolents, 2% mortals
       if (r < 0.55) {
         type = "good";
-      } else if (r < 0.98) {
+      } else if (r < 0.97) {
         type = "bad";
       } else {
         type = "death";
@@ -459,7 +459,7 @@
       if (player.x + player.w > width) player.x = width - player.w;
 
       // spawn aleatori d’objectes
-      if (Math.random() < 0.02) {
+      if (Math.random() < 0.025) {
         spawnItem();
       }
 
@@ -664,3 +664,4 @@
 
 </body>
 </html>
+
