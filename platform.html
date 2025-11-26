@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minijoc 3 · Atrapa els regals</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #3b2b7a 0%, #1a1a1a 45%, #050509 100%);
+      background-attachment: fixed;
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      text-align: center;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(#ffffff55 1px, transparent 1px),
+        radial-gradient(#ffffff33 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      background-position: 0 0, 20px 30px;
+      opacity: 0.4;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 12px 10px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .game-title {
+      font-size: 13px;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .divider {
+      width: 70%;
+      max-width: 260px;
+      height: 4px;
+      margin: 10px auto 18px;
+      background:
+        repeating-linear-gradient(
+          to right,
+          #ffcf40 0 8px,
+          #000 8px 10px
+        );
+      border: 2px solid #000;
+    }
+
+    .game-card {
+      background: #111;
+      border: 3px solid #000;
+      box-shadow: 0 4px 0 #000;
+      border-radius: 6px;
+      padding: 10px 8px 12px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .game-intro {
+      font-size: 9px;
+      line-height: 1.7;
+      margin: 0 6px 10px;
+      color: #f0f0f0;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      border-radius: 4px;
+      border: 3px solid #000;
+      box-shadow: 0 4px 0 #000;
+      background: linear-gradient(to top, #1a1a1a 0%, #243b6b 40%, #3b6bb0 100%);
+      image-rendering: pixelated;
+    }
+
+    .hud {
+      margin-top: 6px;
+      font-size: 8px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 6px;
+      opacity: 0.9;
+    }
+
+    .message {
+      font-size: 9px;
+      margin-top: 10px;
+      min-height: 40px;
+      line-height: 1.6;
+    }
+
+    .touch-controls {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .touch-btn {
+      width: 64px;
+      height: 40px;
+      border-radius: 6px;
+      border: 3px solid #000;
+      background: #222;
+      color: #ffcf40;
+      font-size: 14px;
+      box-shadow: 0 3px 0 #000;
+      text-shadow: 0 2px 0 #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .touch-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 8px;
+      color: #ffcf40;
+      text-decoration: none;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* INTRO OVERLAY tipus màquina d'escriure */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      color: #ffcf40;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .intro-text {
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .intro-hint {
+      font-size: 8px;
+      color: #aaa;
+      opacity: 0.9;
+    }
+
+    .intro-overlay.fade-out {
+      animation: introFadeOut 0.6s forwards;
+    }
+
+    @keyframes introFadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    /* Botó música */
+    .music-btn {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid #000;
+      background: #222;
+      color: #ffcf40;
+      font-size: 18px;
+      box-shadow: 0 3px 0 #000;
+      text-shadow: 0 2px 0 #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 20;
+    }
+
+    .music-btn.playing {
+      background: #ffcf40;
+      color: #000;
+    }
+
+    .music-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    @media (max-width: 480px) {
+      .game-title { font-size: 12px; }
+      .game-intro { font-size: 8px; }
+      .intro-text { font-size: 12px; }
+      .touch-btn { width: 60px; height: 38px; font-size: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Música de fons -->
+  <audio id="bg-music" src="music/fall_objects.mp3" loop></audio>
+  <button id="musicToggle" class="music-btn">♪</button>
+
+  <!-- INTRO MINIJOC 3 -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-text" id="introText"></div>
+    <div class="intro-hint">Toca la pantalla per continuar</div>
+  </div>
+
+  <div class="container" id="gameContainer" style="display:none;">
+    <h1 class="game-title">MINIJOC 3 · ATRAPA ELS REGALS</h1>
+    <div class="divider"></div>
+
+    <div class="game-card">
+      <canvas id="gameCanvas" width="320" height="480"></canvas>
+
+      <div class="hud">
+        <span id="scoreLabel">Objectes bons: 0 / 10</span>
+        <span id="livesLabel">Vides: ♥♥♥</span>
+      </div>
+
+      <div class="message" id="endMessage"></div>
+
+      <div class="touch-controls">
+        <button class="touch-btn" id="btnLeft">◀</button>
+        <button class="touch-btn" id="btnRight">▶</button>
+      </div>
+    </div>
+
+    <a href="index.html" class="back-link">⟵ Tornar al menú principal</a>
+  </div>
+
+  <script>
+    /* ---------- INTRO MÀQUINA D’ESCRIURE ---------- */
+    const introSteps = [
+      "Últim minijoc, Marianne.",
+      "The last Dance",
+      "Anem a fer un remember del joc que vas fer a DAM 2",
+      "Ja saps el de recollir els objectes",
+      "Has d'agafar 20 objectes en total",
+      "Pero vigila, que alguns et treuran vides",
+      "Com saber quins son bons i quins dolents?",
+      "Bueno, pensa que és el que t'agrada i el que no"
+    ];
+
+    const introOverlay = document.getElementById("introOverlay");
+    const introTextEl = document.getElementById("introText");
+    const gameContainer = document.getElementById("gameContainer");
+
+    let currentIntro = 0;
+    let typingIndex = 0;
+    let typingInterval = null;
+    let isTyping = false;
+
+    function startTyping() {
+      if (typingInterval) clearInterval(typingInterval);
+      typingIndex = 0;
+      introTextEl.textContent = "";
+      isTyping = true;
+
+      const text = introSteps[currentIntro];
+
+      typingInterval = setInterval(() => {
+        introTextEl.textContent += text.charAt(typingIndex);
+        typingIndex++;
+
+        if (typingIndex >= text.length) {
+          clearInterval(typingInterval);
+          typingInterval = null;
+          isTyping = false;
+        }
+      }, 35);
+    }
+
+    function handleIntroClick() {
+      const fullText = introSteps[currentIntro];
+
+      if (isTyping) {
+        if (typingInterval) clearInterval(typingInterval);
+        introTextEl.textContent = fullText;
+        isTyping = false;
+        return;
+      }
+
+      currentIntro++;
+      if (currentIntro < introSteps.length) {
+        startTyping();
+      } else {
+        introOverlay.classList.add("fade-out");
+        setTimeout(() => {
+          introOverlay.style.display = "none";
+          gameContainer.style.display = "block";
+        }, 600);
+      }
+    }
+
+    introOverlay.addEventListener("click", handleIntroClick);
+    introOverlay.addEventListener("touchstart", handleIntroClick);
+
+    // iniciar intro al carregar
+    startTyping();
+
+    /* ---------- JOC ATRAPA ELS REGALS (AMB IMATGES) ---------- */
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const scoreLabel = document.getElementById("scoreLabel");
+    const livesLabel = document.getElementById("livesLabel");
+    const endMessage = document.getElementById("endMessage");
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // CONFIGURACIÓ
+    const TARGET_GOOD = 20;   // quants bons ha d’atrapar per guanyar
+    let lives = 3;
+
+    // jugador
+    const playerSprite = new Image();
+    playerSprite.src = "img/player.png"; // <-- posa aquí el nom real del fitxer
+
+    const PLAYER_W = 40;   // ample del sprite al joc (pots ajustar)
+    const PLAYER_H = 40;   // alçada del sprite
+
+    const player = {
+      x: width / 2 - PLAYER_W / 2,
+      y: height - 60,
+      w: PLAYER_W,
+      h: PLAYER_H,
+      speed: 1.7
+    };
+
+    // 🖼️ IMATGES DELS OBJECTES
+    const goodImagesPaths = [
+      "img/cerveza.png",
+      "img/sushi.png",
+      "img/paquet.png"
+    ];
+
+    const badImagesPaths = [
+      "img/peu.png",
+      "img/chocolate.png"
+    ];
+
+    const deathImagesPaths = [
+      "img/iker.png"
+    ];
+
+    function loadImage(src) {
+      const img = new Image();
+      img.src = src;
+      return img;
+    }
+
+    const goodSprites = goodImagesPaths.map(loadImage);
+    const badSprites = badImagesPaths.map(loadImage);
+    const deathSprites = deathImagesPaths.map(loadImage);
+
+    // objectes
+    const items = [];
+    const maxItems = 4;
+    let caughtGood = 0;
+    let gameOver = false;
+
+    // controls
+    let leftPressed = false;
+    let rightPressed = false;
+
+    function updateHUD() {
+      scoreLabel.textContent = `Objectes bons: ${caughtGood} / ${TARGET_GOOD}`;
+      livesLabel.textContent = `Vides: ${"♥".repeat(lives)}${" ".repeat(Math.max(0, 3 - lives))}`;
+    }
+
+    // Spawn d’objectes
+    function spawnItem() {
+      if (items.length >= maxItems) return;
+
+      const radius = 12;
+      const x = radius + Math.random() * (width - 2 * radius);
+      const speed = 0.6 + Math.random() * 0.4;
+
+      const r = Math.random();
+      let type;
+
+      // 55% bons, 43% dolents, 2% mortals
+      if (r < 0.55) {
+        type = "good";
+      } else if (r < 0.98) {
+        type = "bad";
+      } else {
+        type = "death";
+      }
+
+      let sprite;
+      if (type === "good") {
+        sprite = goodSprites[Math.floor(Math.random() * goodSprites.length)];
+      } else if (type === "bad") {
+        sprite = badSprites[Math.floor(Math.random() * badSprites.length)];
+      } else {
+        sprite = deathSprites[Math.floor(Math.random() * deathSprites.length)];
+      }
+
+      items.push({
+        x,
+        y: -radius - 5,
+        r: radius,
+        vy: speed,
+        type,
+        sprite
+      });
+    }
+
+    function updateGame() {
+      if (!gameContainer.style.display || gameContainer.style.display === "none") {
+        requestAnimationFrame(updateGame);
+        return;
+      }
+
+      if (gameOver) {
+        drawGame();
+        return;
+      }
+
+      // moviment jugador
+      if (leftPressed) player.x -= player.speed;
+      if (rightPressed) player.x += player.speed;
+
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > width) player.x = width - player.w;
+
+      // spawn aleatori d’objectes
+      if (Math.random() < 0.02) {
+        spawnItem();
+      }
+
+      // mou objectes
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+        it.y += it.vy;
+
+        // col·lisió amb el jugador
+        if (checkCollisionCircleRect(it, player)) {
+          handleItemCatch(it);
+          items.splice(i, 1);
+          continue;
+        }
+
+        // si surt de pantalla
+        if (it.y - it.r > height) {
+          items.splice(i, 1);
+        }
+      }
+
+      drawGame();
+      requestAnimationFrame(updateGame);
+    }
+
+    function handleItemCatch(item) {
+      if (gameOver) return;
+
+      if (item.type === "good") {
+        caughtGood++;
+        if (caughtGood >= TARGET_GOOD) {
+          gameOver = true;
+          updateHUD();
+          endMessage.innerHTML =
+            "Fumadora i alcohólica, ya me joderia.";
+        } else {
+          updateHUD();
+        }
+      } else if (item.type === "bad") {
+        lives--;
+        updateHUD();
+        if (lives <= 0) {
+          gameOver = true;
+          endMessage.innerHTML =
+            "Has acabat amb podofilia i adicte a la chocolate☠️";
+        }
+      } else if (item.type === "death") {
+        gameOver = true;
+        lives = 0;
+        updateHUD();
+        endMessage.innerHTML =
+          "MARII?? Perque anem a per el iker???";
+      }
+    }
+
+    function checkCollisionCircleRect(circle, rect) {
+      const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.w));
+      const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.h));
+      const dx = circle.x - closestX;
+      const dy = circle.y - closestY;
+      return (dx * dx + dy * dy) < (circle.r * circle.r);
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, width, height);
+
+      // terra
+      ctx.fillStyle = "#141414";
+      ctx.fillRect(0, height - 40, width, 40);
+
+      // jugador
+      if (playerSprite.complete) {
+        ctx.drawImage(playerSprite, player.x, player.y, player.w, player.h);
+      } else {
+        ctx.fillStyle = "#ff66aa";
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+      }
+
+      // objectes que cauen
+      for (const it of items) {
+        const size = it.r * 2;
+        const drawX = it.x - it.r;
+        const drawY = it.y - it.r;
+
+        if (it.sprite && it.sprite.complete) {
+          ctx.drawImage(it.sprite, drawX, drawY, size, size);
+        } else {
+          ctx.beginPath();
+          ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "#000";
+          ctx.stroke();
+        }
+      }
+    }
+
+    // teclat
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        leftPressed = true;
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        rightPressed = true;
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        leftPressed = false;
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        rightPressed = false;
+      }
+    });
+
+    // BOTONS TÀCTILS
+    const btnLeft = document.getElementById("btnLeft");
+    const btnRight = document.getElementById("btnRight");
+
+    function setupTouchButton(btn, onChange) {
+      const press = (e) => {
+        e.preventDefault();
+        onChange(true);
+      };
+      const release = (e) => {
+        e.preventDefault();
+        onChange(false);
+      };
+
+      btn.addEventListener("touchstart", press, { passive: false });
+      btn.addEventListener("touchend", release, { passive: false });
+      btn.addEventListener("touchcancel", release, { passive: false });
+      btn.addEventListener("mousedown", press);
+      btn.addEventListener("mouseup", release);
+      btn.addEventListener("mouseleave", release);
+    }
+
+    setupTouchButton(btnLeft, (down) => { leftPressed = down; });
+    setupTouchButton(btnRight, (down) => { rightPressed = down; });
+
+    // inicialitzar HUD i bucle del joc
+    updateHUD();
+    requestAnimationFrame(updateGame);
+
+    /* ---------- MÚSICA DE FONS ---------- */
+    const music = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('musicToggle');
+    let isPlaying = false;
+
+    if (music && musicBtn) {
+      const TARGET_VOL = 0.18; // volum de fons
+
+      function fadeIn() {
+        let v = 0;
+        music.volume = 0;
+        const fade = setInterval(() => {
+          if (v < TARGET_VOL) {
+            v += 0.01;
+            music.volume = v;
+          } else {
+            music.volume = TARGET_VOL;
+            clearInterval(fade);
+          }
+        }, 200);
+      }
+
+      window.addEventListener('load', () => {
+        music.play().then(() => {
+          fadeIn();
+          isPlaying = true;
+          musicBtn.classList.add('playing');
+        }).catch(() => {
+          const firstTouchPlay = () => {
+            music.play().then(() => {
+              fadeIn();
+              isPlaying = true;
+              musicBtn.classList.add('playing');
+            }).catch(() => {});
+          };
+          document.body.addEventListener('touchstart', firstTouchPlay, { once: true });
+          document.body.addEventListener('click', firstTouchPlay, { once: true });
+        });
+      });
+
+      function toggleMusic() {
+        if (!music) return;
+        if (isPlaying) {
+          music.pause();
+          isPlaying = false;
+          musicBtn.classList.remove('playing');
+        } else {
+          music.play().then(() => {
+            isPlaying = true;
+            musicBtn.classList.add('playing');
+          }).catch(() => {});
+        }
+      }
+
+      musicBtn.addEventListener('click', toggleMusic);
+    }
+  </script>
+
+</body>
+</html>

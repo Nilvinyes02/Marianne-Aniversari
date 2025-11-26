@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Felicitats Marianne 💛</title>
+
+  <!-- Font retro -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    /* ---------- ESTIL GLOBAL ---------- */
+    body {
+      margin: 0;
+      padding: 5px 0 0 0;
+      font-family: 'Press Start 2P', cursive;
+      color: #fff;
+      text-align: center;
+
+      background: radial-gradient(circle at top, #3b2b7a 0%, #1a1a1a 45%, #050509 100%);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(#ffffff55 1px, transparent 1px),
+        radial-gradient(#ffffff33 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      background-position: 0 0, 20px 30px;
+      opacity: 0.4;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 10px 30px;
+    }
+
+    /* ---------- BOTÓ MÚSICA ---------- */
+    .music-btn {
+      position: fixed;
+      /* top: 8px;  <- ELIMINAT */
+      right: 8px;
+      bottom: 10px;     /* ARA VA A BAIX */
+      z-index: 10;
+      border: 2px solid #000;
+      background: #ffcf40;
+      padding: 6px 8px;
+      font-size: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 0 #000;
+    }
+
+    .music-btn.playing {
+      background: #ffe680;
+    }
+
+    .music-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 0 0 #000;
+    }
+
+    /* ---------- LOGO ---------- */
+    .logo-img {
+      width: 90%;
+      max-width: 360px;
+      height: auto;
+      image-rendering: pixelated;
+      margin-top: 0;
+      margin-bottom: 2px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      animation: pulse 2.8s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+
+    /* ---------- IMATGE PIXELART D'ELLA ---------- */
+    .char-img {
+      width: 55%;
+      max-width: 260px;
+      image-rendering: pixelated;
+      margin-top: 0;
+      margin-bottom: 120px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+
+      opacity: 0;
+      transform: translateY(15px);
+      animation: appear 1.2s forwards ease-out;
+      animation-delay: 0.3s;
+    }
+
+    @keyframes appear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ---------- TEXT ---------- */
+    p {
+    font-size: 14px;
+    margin: 0 20px 10px;   /* << abans 25px → ara molt més a prop */
+    line-height: 1.6;
+    color: #f0f0f0;
+    text-shadow: 0 2px 0 #000;
+  }
+
+  .divider {
+    width: 70%;
+    max-width: 260px;
+    height: 4px;
+    margin: -70px auto 10px;  /* << abans 10px auto 20px → ara PUGEN */
+    background:
+      repeating-linear-gradient(
+        to right,
+        #ffcf40 0 8px,
+        #000 8px 10px
+      );
+    border: 2px solid #000;
+  }
+
+    /* ---------- CONTENIDOR BOTONS ---------- */
+    .buttons {
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px; /* una mica més d'espai entre botons */
+    }
+
+    /* ---------- BOTONS MINIJOC (MÉS GRANS) ---------- */
+    .btn {
+      display: block;
+      width: 100%;
+      max-width: 340px;        /* una mica més ample */
+      margin: 0 auto;
+      padding: 14px 10px;      /* ABANS 10px 8px → més alts */
+      text-decoration: none;
+      border-radius: 4px;
+      border: 3px solid #000;
+      box-shadow: 0 3px 0 #000;
+      text-align: center;
+      background: #222;
+      color: #ffcf40;
+      transition: 0.15s;
+    }
+
+    .btn-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;               /* una mica més de separació */
+    }
+
+    .btn-icon {
+      font-size: 18px;         /* icona més gran (abans 14px) */
+      flex-shrink: 0;
+    }
+
+    .btn-title {
+      font-size: 9px;          /* títol més gran (abans 8px) */
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 #000;
+      filter: brightness(1.1);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    .btn-quiz {
+      background: #222;
+      color: #ffcf40;
+    }
+
+    .btn-memory {
+      background: #151f30;
+      color: #7be0ff;
+    }
+
+    .btn-platform {
+      background: #2a1425;
+      color: #ff8ad4;
+    }
+
+    @media (max-width: 480px) {
+      p { font-size: 8px; }
+      .btn-title { font-size: 8px; } /* en mòbil segueix llegible */
+      .music-btn { font-size: 9px; padding: 5px 7px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <audio id="bg-music" src="music/main_theme.mp3" loop></audio>
+  <button class="music-btn" id="musicToggle" onclick="toggleMusic()">🎵 MUSIC</button>
+
+  <div class="container">
+
+    <img src="img/felicitats.png" class="logo-img" alt="Felicitats Marianne">
+
+    <img src="img/mari_retro_senseFons.png" class="char-img" alt="Marianne Pixel Art">
+
+    <div class="divider"></div>
+
+    <p>
+      Felicitats guapissima!! 22 anyets ja la criatura jaja, estas ja amb un peu a la tumba.
+      Aquest és el meu regal, supera cada minijoc i potser et trobes una sorpresa 😏
+    </p>
+
+    <div class="buttons">
+      <a class="btn btn-quiz" href="quiz.html">
+        <div class="btn-inner">
+          <div class="btn-icon">🧠</div>
+          <div class="btn-title">MINIJOC 1 · QUIZ</div>
+        </div>
+      </a>
+
+      <a class="btn btn-memory" href="memory.html">
+        <div class="btn-inner">
+          <div class="btn-icon">🃏</div>
+          <div class="btn-title">MINIJOC 2 · MEMORY</div>
+        </div>
+      </a>
+
+      <a class="btn btn-platform" href="platform.html">
+        <div class="btn-inner">
+          <div class="btn-icon">🎮</div>
+          <div class="btn-title">MINIJOC 3 · Videojoc</div>
+        </div>
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    const music = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('musicToggle');
+    let isPlaying = false;
+
+    // volum suau
+    music.volume = 0.10; // canvia aquí si vols més o menys
+
+    // intentar autoplay silenciat amb fade-in
+    window.addEventListener("load", () => {
+      music.volume = 0;                 // comença mud
+      music.play().then(() => {
+        // fade-in suau a 0.20
+        let v = 0;
+        const fade = setInterval(() => {
+          if (v < 0.20) {
+            v += 0.01;
+            music.volume = v;
+          } else {
+            clearInterval(fade);
+          }
+        }, 200);
+        isPlaying = true;
+        musicBtn.classList.add('playing');
+      }).catch(() => {
+        // Si el mòbil no permet autoplay, esperem un toc
+        document.body.addEventListener('touchstart', firstTouchPlay, { once: true });
+        document.body.addEventListener('click', firstTouchPlay, { once: true });
+      });
+    });
+
+    function firstTouchPlay() {
+      music.volume = 0;
+      music.play().then(() => {
+        let v = 0;
+        const fade = setInterval(() => {
+          if (v < 0.20) {
+            v += 0.01;
+            music.volume = v;
+          } else {
+            clearInterval(fade);
+          }
+        }, 200);
+        isPlaying = true;
+        musicBtn.classList.add('playing');
+      });
+    }
+
+    // Botó manual
+    function toggleMusic() {
+      if (!music) return;
+
+      if (isPlaying) {
+        music.pause();
+        isPlaying = false;
+        musicBtn.classList.remove('playing');
+      } else {
+        music.play();
+        isPlaying = true;
+        musicBtn.classList.add('playing');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minijoc 2 · Memory</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    /* --------- AFEGIT: box-sizing global --------- */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #3b2b7a 0%, #1a1a1a 45%, #050509 100%);
+      background-attachment: fixed;
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      text-align: center;
+      overflow-x: hidden; /* evita scroll horitzontal en mòbil */
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(#ffffff55 1px, transparent 1px),
+        radial-gradient(#ffffff33 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      background-position: 0 0, 20px 30px;
+      opacity: 0.4;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 10px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .game-title {
+      font-size: 13px;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .divider {
+      width: 70%;
+      max-width: 260px;
+      height: 4px;
+      margin: 10px auto 18px;
+      background:
+        repeating-linear-gradient(
+          to right,
+          #ffcf40 0 8px,
+          #000 8px 10px
+        );
+      border: 2px solid #000;
+    }
+
+    .game-card {
+      background: #111;
+      border: 3px solid #000;
+      box-shadow: 0 4px 0 #000;
+      border-radius: 6px;
+      padding: 14px 10px 20px;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;          /* 👉 centra la targeta */
+    }
+
+    .game-intro {
+      font-size: 9px;
+      line-height: 1.7;
+      margin: 0 6px 14px;
+      color: #f0f0f0;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    /* TAULER MEMORY */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 0 auto 14px;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      cursor: pointer;
+      perspective: 600px;
+    }
+
+    .card-inner {
+      position: absolute;
+      inset: 0;
+      transition: transform 0.35s;
+      transform-style: preserve-3d;
+    }
+
+    .card.flipped .card-inner,
+    .card.matched .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      border: 2px solid #000;
+      box-shadow: 0 3px 0 #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+    }
+
+    /* REVERS DE LA CARTA (tancada) */
+    .card-front {
+      background: #222;
+      background-image: url("img/reverse1.jpg"); /* la imatge del revers */
+      background-size: cover;
+      background-position: center;
+    }
+
+    .card-front::before {
+      content: none;
+    }
+
+    /* CARA DE LA CARTA (oberta amb imatge) */
+    .card-back {
+      background: #000;
+      transform: rotateY(180deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .card-back img {
+      max-width: 90%;
+      max-height: 90%;
+      image-rendering: pixelated;
+    }
+
+    .moves {
+      font-size: 8px;
+      margin-bottom: 8px;
+    }
+
+    .message {
+      font-size: 9px;
+      margin-top: 6px;
+      min-height: 32px;
+      line-height: 1.6;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 3px solid #000;
+      background: #ffcf40;
+      color: #000;
+      font-size: 8px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #000;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 #000;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 8px;
+      color: #ffcf40;
+      text-decoration: none;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* INTRO OVERLAY tipus màquina d'escriure */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      color: #ffcf40;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .intro-text {
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .intro-hint {
+      font-size: 8px;
+      color: #aaa;
+      opacity: 0.9;
+    }
+
+    .intro-overlay.fade-out {
+      animation: introFadeOut 0.6s forwards;
+    }
+
+    @keyframes introFadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    @media (max-width: 480px) {
+      .game-title { font-size: 12px; }
+      .game-intro { font-size: 8px; }
+      .intro-text { font-size: 12px; }
+
+      .container {
+        padding: 16px 8px 30px;   /* menys marge lateral en mòbil */
+      }
+
+      .game-card {
+        max-width: 340px;         /* més estreta perquè no toqui les vores */
+        padding: 12px 8px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- INTRO MEMORY -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-text" id="introText"></div>
+    <div class="intro-hint">Toca la pantalla per continuar</div>
+  </div>
+
+  <div class="container" id="memoryContainer" style="display:none;">
+    <h1 class="game-title">MINIJOC 2 · MEMORY</h1>
+    <div class="divider"></div>
+
+    <div class="game-card">
+      <div class="stats">
+        <span id="movesLabel">Jugades: 0</span>
+        <span id="pairsLabel">Parelles: 0 / 8</span>
+      </div>
+
+      <div class="board" id="board"></div>
+
+      <div class="moves" id="bestLabel"></div>
+      <div class="message" id="message"></div>
+
+      <div class="btn-row">
+        <button class="btn" id="resetBtn" type="button">Reiniciar</button>
+      </div>
+    </div>
+
+    <a href="index.html" class="back-link">⟵ Tornar al menú principal</a>
+  </div>
+
+  <script>
+    /* ---------- INTRO MÀQUINA D’ESCRIURE ---------- */
+    const introSteps = [
+      "Segon minijoc, Mari.",
+      "Toca un memory, molt de bulling em vas fer fa 2 anys perque no se'm donava bé",
+      "Ja pots fer menys intents que jo"
+    ];
+
+    const introOverlay = document.getElementById("introOverlay");
+    const introTextEl = document.getElementById("introText");
+    const memoryContainer = document.getElementById("memoryContainer");
+
+    let currentIntro = 0;
+    let typingIndex = 0;
+    let typingInterval = null;
+    let isTyping = false;
+
+    function startTyping() {
+      if (typingInterval) clearInterval(typingInterval);
+      typingIndex = 0;
+      introTextEl.textContent = "";
+      isTyping = true;
+
+      const text = introSteps[currentIntro];
+
+      typingInterval = setInterval(() => {
+        introTextEl.textContent += text.charAt(typingIndex);
+        typingIndex++;
+
+        if (typingIndex >= text.length) {
+          clearInterval(typingInterval);
+          typingInterval = null;
+          isTyping = false;
+        }
+      }, 35);
+    }
+
+    function handleIntroClick() {
+      const fullText = introSteps[currentIntro];
+
+      if (isTyping) {
+        if (typingInterval) clearInterval(typingInterval);
+        introTextEl.textContent = fullText;
+        isTyping = false;
+        return;
+      }
+
+      currentIntro++;
+      if (currentIntro < introSteps.length) {
+        startTyping();
+      } else {
+        introOverlay.classList.add("fade-out");
+        setTimeout(() => {
+          introOverlay.style.display = "none";
+          memoryContainer.style.display = "block";
+        }, 600);
+      }
+    }
+
+    introOverlay.addEventListener("click", handleIntroClick);
+    introOverlay.addEventListener("touchstart", handleIntroClick);
+
+    // iniciar intro quan carrega
+    startTyping();
+
+    /* ---------- JOC MEMORY (IMATGES) ---------- */
+
+    // llista d’imatges (duplica cadascuna per fer parella)
+    const images = [
+      "img/mari1.jpg",
+      "img/mari2.jpg",
+      "img/mari3.jpg",
+      "img/mari4.jpg",
+      "img/mari5.jpg",
+      "img/mari6.jpg",
+      "img/mari7.jpg",
+      "img/mari8.png"
+    ];
+
+    const boardEl = document.getElementById("board");
+    const movesLabel = document.getElementById("movesLabel");
+    const pairsLabel = document.getElementById("pairsLabel");
+    const bestLabel = document.getElementById("bestLabel");
+    const messageEl = document.getElementById("message");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let cards = [];
+    let firstCard = null;
+    let secondCard = null;
+    let lockBoard = false;
+    let moves = 0;
+    let matchedPairs = 0;
+    const totalPairs = images.length;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function createBoard() {
+      boardEl.innerHTML = "";
+      cards = [];
+      firstCard = null;
+      secondCard = null;
+      lockBoard = false;
+      moves = 0;
+      matchedPairs = 0;
+      movesLabel.textContent = "Jugades: 0";
+      pairsLabel.textContent = `Parelles: 0 / ${totalPairs}`;
+      messageEl.textContent = "";
+
+      const deck = shuffle([...images, ...images]); // dupliquem les imatges
+
+      deck.forEach((imgSrc) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.image = imgSrc;
+
+        const inner = document.createElement("div");
+        inner.classList.add("card-inner");
+
+        const front = document.createElement("div");
+        front.classList.add("card-face", "card-front"); // revers
+
+        const back = document.createElement("div");
+        back.classList.add("card-face", "card-back");   // cara amb la imatge
+
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.alt = "";
+
+        back.appendChild(img);
+        inner.appendChild(front);
+        inner.appendChild(back);
+        card.appendChild(inner);
+
+        card.addEventListener("click", () => flipCard(card));
+
+        boardEl.appendChild(card);
+        cards.push(card);
+      });
+
+      const best = localStorage.getItem("marianne_memory_best");
+      if (best) {
+        bestLabel.textContent = `Millor marca: ${best} jugades`;
+      } else {
+        bestLabel.textContent = "";
+      }
+    }
+
+    function flipCard(card) {
+      if (lockBoard) return;
+      if (card.classList.contains("flipped") || card.classList.contains("matched")) return;
+
+      card.classList.add("flipped");
+
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
+
+      secondCard = card;
+      lockBoard = true;
+      moves++;
+      movesLabel.textContent = `Jugades: ${moves}`;
+
+      checkMatch();
+    }
+
+    function checkMatch() {
+      const isMatch = firstCard.dataset.image === secondCard.dataset.image;
+
+      if (isMatch) {
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+        matchedPairs++;
+        pairsLabel.textContent = `Parelles: ${matchedPairs} / ${totalPairs}`;
+        resetTurn();
+
+        if (matchedPairs === totalPairs) {
+          gameWon();
+        }
+      } else {
+        setTimeout(() => {
+          firstCard.classList.remove("flipped");
+          secondCard.classList.remove("flipped");
+          resetTurn();
+        }, 700);
+      }
+    }
+
+    function resetTurn() {
+      [firstCard, secondCard] = [null, null];
+      lockBoard = false;
+    }
+
+    function gameWon() {
+      messageEl.innerHTML =
+        "Has trobat totes les parelles. <br> Veig que el TDAH no t'ha afectat tant.";
+
+      const best = localStorage.getItem("marianne_memory_best");
+      if (!best || moves < parseInt(best, 10)) {
+        localStorage.setItem("marianne_memory_best", moves);
+        bestLabel.textContent = `Millor marca: ${moves} jugades`;
+      }
+    }
+
+    resetBtn.addEventListener("click", createBoard);
+
+    // Inicialitzar tauler
+    createBoard();
+  </script>
+
+</body>
+</html>

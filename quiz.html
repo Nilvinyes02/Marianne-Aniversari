@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minijoc 1 · Quiz</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    *,
+    *::before,
+    *::after {
+    box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #3b2b7a 0%, #1a1a1a 45%, #050509 100%);
+      background-attachment: fixed;
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(#ffffff55 1px, transparent 1px),
+        radial-gradient(#ffffff33 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      background-position: 0 0, 20px 30px;
+      opacity: 0.4;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 10px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .quiz-title {
+      font-size: 13px;
+      margin-bottom: 15px;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .quiz-card {
+        background: #111;
+        border: 3px solid #000;
+        box-shadow: 0 4px 0 #000;
+        border-radius: 6px;
+        padding: 18px 12px 24px;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;        /* 👉 centra la targeta dins el container */
+    }
+
+    #quizQuestion {
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    #quizAnswers {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 35px;
+    }
+
+    .answer-btn {
+      border: 2px solid #000;
+      border-radius: 4px;
+      padding: 14px 10px;
+      background: #222;
+      color: #fff;
+      font-size: 11px;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #000;
+      transition: 0.15s;
+      width: 100%;
+    }
+
+    .answer-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 #000;
+      filter: brightness(1.1);
+    }
+
+    .answer-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    .answer-selected {
+      background: #ffcf40;
+      color: #000;
+    }
+
+    .answer-correct {
+      background: #4caf50;
+      color: #000;
+    }
+
+    .answer-incorrect {
+      background: #e53935;
+      color: #000;
+    }
+
+    #nextBtn {
+      margin-top: 5px;
+      padding: 12px 14px;
+      border-radius: 4px;
+      border: 3px solid #000;
+      background: #ffcf40;
+      color: #000;
+      font-size: 10px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #000;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: 0.15s;
+    }
+
+    #nextBtn:disabled {
+      opacity: 0.4;
+      cursor: default;
+      transform: none;
+      box-shadow: 0 0 0 #000;
+    }
+
+    #nextBtn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 #000;
+    }
+
+    #nextBtn:not(:disabled):active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    #quizProgress {
+      margin-top: 10px;
+      font-size: 8px;
+      opacity: 0.8;
+    }
+
+    #quizResult {
+      margin-top: 15px;
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .divider {
+      width: 70%;
+      max-width: 260px;
+      height: 4px;
+      margin: 10px auto 20px;
+      background:
+        repeating-linear-gradient(
+          to right,
+          #ffcf40 0 8px,
+          #000 8px 10px
+        );
+      border: 2px solid #000;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 8px;
+      color: #ffcf40;
+      text-decoration: none;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------- INTRO OVERLAY (REUTILITZADA PER QUIZ I CANÇONS) ---------- */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      color: #ffcf40;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .intro-text {
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 0 #000;
+    }
+
+    .intro-hint {
+      font-size: 8px;
+      color: #aaa;
+      opacity: 0.9;
+    }
+
+    .intro-overlay.fade-out {
+      animation: introFadeOut 0.6s forwards;
+    }
+
+    @keyframes introFadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    /* ---------- MINIJOC CANÇONS ---------- */
+    .song-intro {
+      font-size: 11px;
+      margin-bottom: 18px;
+      line-height: 1.7;
+    }
+
+    #songsList {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 5px;
+    }
+
+    .song-item {
+      border: 2px solid #000;
+      border-radius: 4px;
+      padding: 10px 8px;
+      background: #181818;
+      box-shadow: 0 3px 0 #000;
+    }
+
+    .song-label {
+      font-size: 9px;
+      margin-bottom: 8px;
+    }
+
+    .song-play {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 2px solid #000;
+      background: #ffcf40;
+      color: #000;
+      font-size: 9px;
+      cursor: pointer;
+      box-shadow: 0 2px 0 #000;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .song-play:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    .song-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 6px;
+      border-radius: 4px;
+      border: 2px solid #000;
+      background: #000;
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 9px;
+    }
+
+    .song-note {
+      margin-top: 14px;
+      font-size: 8px;
+      opacity: 0.8;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+        .quiz-title { font-size: 12px; }
+        #quizQuestion { font-size: 9px; }
+        .answer-btn { font-size: 8px; padding: 9px 7px; }
+        .intro-text { font-size: 11px; }
+        .song-intro { font-size: 10px; }
+        .song-label { font-size: 8px; }
+        .song-input { font-size: 8px; }
+
+        .container {
+            padding: 16px 8px 30px;   /* una mica menys de padding lateral */
+        }
+
+        .quiz-card {
+            max-width: 340px;         /* més estreta en mòbil, així no toca les vores */
+            padding: 16px 10px 20px;
+        }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- INTRO REUTILITZADA (QUIZ i CANÇONS) -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-text" id="introText"></div>
+    <div class="intro-hint">Toca la pantalla per continuar</div>
+  </div>
+
+  <!-- FASE 1: QUIZ -->
+  <div class="container" id="quizContainer" style="display:none;">
+    <h1 class="quiz-title">MINIJOC 1 · QUIZ</h1>
+    <div class="divider"></div>
+
+    <div class="quiz-card">
+      <div id="quizQuestion"></div>
+      <div id="quizAnswers"></div>
+      <button id="nextBtn" disabled>Següent</button>
+      <div id="quizProgress"></div>
+      <div id="quizResult"></div>
+    </div>
+
+    <a href="index.html" class="back-link">⟵ Tornar al menú principal</a>
+  </div>
+
+  <!-- FASE 2: CANÇONS -->
+  <div class="container" id="songsContainer" style="display:none;">
+    <h1 class="quiz-title">ENDEVINA LES CANÇONS</h1>
+    <div class="divider"></div>
+
+    <div class="quiz-card">
+      <p class="song-intro">
+        Clica a cada botó per escoltar un tros de la cançó 🎵
+      </p>
+
+      <audio id="songPlayer"></audio>
+
+      <div id="songsList">
+        <div class="song-item">
+          <div class="song-label">Cançó 1</div>
+          <button class="song-play" data-src="music/life_is_strange.mp3">Escoltar ▶</button>
+          <input type="text" class="song-input" placeholder="Escriu de quina obre és">
+        </div>
+
+        <div class="song-item">
+          <div class="song-label">Cançó 2</div>
+          <button class="song-play" data-src="music/subnautica.mp3">Escoltar ▶</button>
+          <input type="text" class="song-input" placeholder="Escriu de quina obre és">
+        </div>
+
+        <div class="song-item">
+          <div class="song-label">Cançó 3</div>
+          <button class="song-play" data-src="music/death_note.mp3">Escoltar ▶</button>
+          <input type="text" class="song-input" placeholder="Escriu de quina obre és">
+        </div>
+      </div>
+
+      <!-- botó per comprovar respostes + resultat -->
+      <button id="checkSongsBtn" class="song-play" type="button" style="margin-top: 18px;">
+        Comprovar respostes
+      </button>
+      <div id="songsResult" class="song-note"></div>
+
+    </div>
+
+    <a href="index.html" class="back-link">⟵ Tornar al menú principal</a>
+  </div>
+
+  <script>
+    /* ---------- INTRO EN DUES FASES (QUIZ I CANÇONS) ---------- */
+    const introSteps1 = [
+      "Benvinguda al primer minijoc, Marianne.",
+      "El primer joc és un quiz, et faré vaires preguntes i tindràs que triar l'opció correcta.",
+      "Això no és com la Uni, que fa mitjana, les has de contestar totes bé.",
+      "No em siguis una Fake Fan."
+    ];
+
+    const introSteps2 = [
+      "Not Bad.",
+      "Però ara ve la 2n part: la banda sonora.",
+      "Escolta cada fragment i escriu d'on ve la cançó."
+    ];
+
+    let introMode = 1; // 1 = abans del quiz, 2 = abans de les cançons
+    let currentIntro = 0;
+    const introOverlay = document.getElementById("introOverlay");
+    const introTextEl = document.getElementById("introText");
+    const quizContainer = document.getElementById("quizContainer");
+    const songsContainer = document.getElementById("songsContainer");
+
+    let typingIndex = 0;
+    let typingInterval = null;
+    let isTyping = false;
+
+    function getCurrentSteps() {
+      return introMode === 1 ? introSteps1 : introSteps2;
+    }
+
+    function startTyping() {
+      if (typingInterval) clearInterval(typingInterval);
+      typingIndex = 0;
+      introTextEl.textContent = "";
+      isTyping = true;
+
+      const steps = getCurrentSteps();
+      const text = steps[currentIntro];
+
+      typingInterval = setInterval(() => {
+        introTextEl.textContent += text.charAt(typingIndex);
+        typingIndex++;
+
+        if (typingIndex >= text.length) {
+          clearInterval(typingInterval);
+          typingInterval = null;
+          isTyping = false;
+        }
+      }, 35);
+    }
+
+    function handleIntroClick() {
+      const steps = getCurrentSteps();
+      const fullText = steps[currentIntro];
+
+      if (isTyping) {
+        if (typingInterval) clearInterval(typingInterval);
+        introTextEl.textContent = fullText;
+        isTyping = false;
+        return;
+      }
+
+      currentIntro++;
+      if (currentIntro < steps.length) {
+        startTyping();
+      } else {
+        // acabar intro d'aquest mode
+        introOverlay.classList.add("fade-out");
+        setTimeout(() => {
+          introOverlay.classList.remove("fade-out");
+          introOverlay.style.display = "none";
+
+          if (introMode === 1) {
+            quizContainer.style.display = "block";
+          } else if (introMode === 2) {
+            songsContainer.style.display = "block";
+          }
+        }, 600);
+      }
+    }
+
+    introOverlay.addEventListener("click", handleIntroClick);
+    introOverlay.addEventListener("touchstart", handleIntroClick);
+
+    // iniciem amb la intro 1 (quiz)
+    startTyping();
+
+    /* ---------- QUIZ ---------- */
+    const questions = [
+      {
+        text: "A quina hora començava la pel·lícula de Shingeki i a quina hora vam arribar? 😡",
+        answers: [
+          "A les 19:00h i vam arribar a les 19:30h",
+          "A les 18:00h i vam arribar a les 18:15h",
+          "A les 20:30h i vam arribar a les 21:00h"
+        ],
+        correct: 2
+      },
+      {
+        text: "El primer dia de DAM 2, en Julià ens va passar el document d'inici de curs amb una web enllaçada. Quina era?",
+        answers: ["OnlyFans", "PornHub", "xVideos"],
+        correct: 1
+      },
+      {
+        text: "Com es diu el personatge que controles al Split Fiction?",
+        answers: ["Zoe", "Mio", "Lia"],
+        correct: 0
+      },
+      {
+        text: "La Marianne ronca?",
+        answers: ["Sí", "No", "És com tenir un putíssim transatlàntic a 3 metres"],
+        correct: 2
+      },
+      {
+        text: "Qui és la millor persona del món i la millor amiga que podria tenir?",
+        answers: ["Marianne Pulgar Vega"],
+        correct: 0
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedAnswerIndex = null;
+    let questionAnswered = false;
+
+    const quizQuestionEl = document.getElementById("quizQuestion");
+    const quizAnswersEl = document.getElementById("quizAnswers");
+    const nextBtn = document.getElementById("nextBtn");
+    const quizProgressEl = document.getElementById("quizProgress");
+    const quizResultEl = document.getElementById("quizResult");
+
+    function loadQuestion() {
+      const q = questions[currentQuestionIndex];
+      quizQuestionEl.textContent = q.text;
+      quizAnswersEl.innerHTML = "";
+      quizResultEl.textContent = "";
+      selectedAnswerIndex = null;
+      questionAnswered = false;
+      nextBtn.disabled = true;
+
+      q.answers.forEach((ans, index) => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = ans;
+        btn.addEventListener("click", () => selectAnswer(index));
+        quizAnswersEl.appendChild(btn);
+      });
+
+      quizProgressEl.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+      nextBtn.textContent = "Comprovar";
+    }
+
+    function selectAnswer(index) {
+      if (questionAnswered) return;
+
+      selectedAnswerIndex = index;
+      nextBtn.disabled = false;
+
+      const buttons = quizAnswersEl.querySelectorAll(".answer-btn");
+      buttons.forEach((btn, i) => {
+        btn.classList.toggle("answer-selected", i === index);
+      });
+    }
+
+    nextBtn.addEventListener("click", () => {
+      if (selectedAnswerIndex === null) return;
+
+      questionAnswered = true;
+      const q = questions[currentQuestionIndex];
+      const buttons = quizAnswersEl.querySelectorAll(".answer-btn");
+
+      buttons.forEach((btn, i) => {
+        btn.classList.remove("answer-selected");
+        if (i === q.correct) {
+          btn.classList.add("answer-correct");
+        } else if (i === selectedAnswerIndex && i !== q.correct) {
+          btn.classList.add("answer-incorrect");
+        }
+      });
+
+      if (selectedAnswerIndex === q.correct) {
+        score++;
+      }
+
+      if (currentQuestionIndex < questions.length - 1) {
+        nextBtn.textContent = "Següent";
+        setTimeout(() => {
+          currentQuestionIndex++;
+          loadQuestion();
+        }, 900);
+      } else {
+        showFinalResult();
+      }
+    });
+
+    function showFinalResult() {
+      quizAnswersEl.innerHTML = "";
+      quizQuestionEl.textContent = "Resultat del Quiz";
+      quizProgressEl.textContent = "";
+
+      const total = questions.length;
+
+      if (score === total) {
+        quizResultEl.innerHTML = `
+          Has encertat ${score} de ${total} preguntes.<br><br>
+          Facilet, no? 😏
+        `;
+        nextBtn.style.display = "none";
+
+        // després d'un petit temps, passem a la intro de les cançons
+        setTimeout(() => {
+          quizContainer.style.display = "none";
+          introMode = 2;
+          currentIntro = 0;
+          introOverlay.style.display = "flex";
+          startTyping();
+        }, 1500);
+      } else {
+        quizResultEl.innerHTML = `
+          Has encertat ${score} de ${total} preguntes.<br><br>
+          Fake Fan de manual.
+        `;
+        nextBtn.style.display = "none";
+      }
+    }
+
+    // carregar primera pregunta
+    loadQuestion();
+
+    /* ---------- MINIJOC CANÇONS: PLAY + COMPROVACIÓ ---------- */
+    const songPlayer = document.getElementById("songPlayer");
+    const songButtons = document.querySelectorAll(".song-play[data-src]");
+    const checkBtn = document.getElementById("checkSongsBtn");
+    const songsResultEl = document.getElementById("songsResult");
+    const songInputs = document.querySelectorAll(".song-input");
+
+    // reproduir la cançó
+    songButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const src = btn.dataset.src;
+        if (!src) return;
+        songPlayer.src = src;
+        songPlayer.currentTime = 0;
+        songPlayer.play().catch(() => {});
+      });
+    });
+
+    // respostes correctes (posa aquí el que vols acceptar com a bo)
+    const songAnswers = [
+      ["life is strange"],     
+      ["subnautica"],            
+      ["death note"]             
+    ];
+
+    checkBtn.addEventListener("click", () => {
+      let correctes = 0;
+
+      songInputs.forEach((input, index) => {
+        const userText = normalizeText(input.value);
+        const validList = songAnswers[index] || [];
+
+        const isCorrect = validList.some(ans => userText.includes(ans));
+
+        if (isCorrect) {
+          correctes++;
+          input.style.borderColor = "#4caf50";
+        } else {
+          input.style.borderColor = "#e53935";
+        }
+      });
+
+      songsResultEl.innerHTML = `Has encertat ${correctes} de ${songInputs.length} cançons.`;
+    });
+
+    function normalizeText(str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>START</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: 'Press Start 2P', cursive;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .press-start {
+      font-size: 28px;
+      color: #ffcf40;
+      text-shadow: 0 0 8px #ffcf40;
+      animation: blink 1.15s infinite;
+      cursor: pointer;
+      letter-spacing: 3px;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      50.1%, 100% { opacity: 0.1; }
+    }
+
+    .fade-out {
+      animation: fadeout 0.6s forwards;
+    }
+
+    @keyframes fadeout {
+      to { opacity: 0; }
+    }
+
+    .hint {
+      margin-top: 20px;
+      font-size: 8px;
+      color: #777;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- So de fons “pi-pu” en loop -->
+  <audio id="startSound" src="music/pressStart.mp3" loop></audio>
+
+  <!-- Beep curt quan entra al joc -->
+  <audio id="clickSound" src="music/click.mp3"></audio>
+
+  <div class="press-start" id="pressStart">PRESS START</div>
+  <!-- <div class="hint">(toca un cop per activar el so i un altre per començar)</div> -->
+
+  <script>
+    const sound = document.getElementById("startSound");
+    const clickSound = document.getElementById("clickSound");
+    const pressStart = document.getElementById("pressStart");
+
+    sound.volume = 0.25;
+    clickSound.volume = 0.6; // ajusta el volum del beep si vols
+
+    let hasStartedSound = false;  // primer toc: només so
+    let isTransitioning = false;  // per evitar dobles clics
+
+    function handlePress() {
+      if (isTransitioning) return;
+
+      if (!hasStartedSound) {
+        // PRIMER TOC → activem el loop i ens quedem a la pantalla
+        hasStartedSound = true;
+        sound.currentTime = 0;
+        sound.play().catch(() => {
+          // si el navegador bloqueja, no petarà res
+        });
+        return;
+      }
+
+      // SEGON TOC → beep + fade + canvi de pàgina
+      isTransitioning = true;
+
+      // Reproduïm el beep de clic
+      clickSound.currentTime = 0;
+      clickSound.play().catch(() => {});
+
+      // Fade visual
+      document.body.classList.add("fade-out");
+
+      setTimeout(() => {
+        // parem el so de fons
+        sound.pause();
+        sound.currentTime = 0;
+
+        window.location.href = "menu.html";
+      }, 1600);
+    }
+
+    pressStart.addEventListener("click", handlePress);
+    pressStart.addEventListener("touchstart", handlePress);
+  </script>
+
+</body>
+</html>
